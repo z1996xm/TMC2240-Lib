@@ -1,6 +1,7 @@
 #pragma once
 #pragma pack(push, 1)
 
+
 namespace TMC2240_n {
   struct GCONF_t {
     constexpr static uint8_t address = 0x00;
@@ -66,9 +67,38 @@ namespace TMC2240_n {
       uint32_t sr;
       struct {
         uint8_t current_range : 2,
-                    : 2,
+                              : 2,
                 slope_control : 2;
-        uint32_t    : 16;
+        uint16_t              : 16;
+      };
+    };
+  };
+};
+
+
+
+namespace TMC2240_n {
+  struct DRV_STATUS_t {
+    constexpr static uint8_t address = 0x6F;
+    union {
+      uint32_t sr;
+      struct {
+        uint16_t SG_RESULT : 10;
+        uint8_t            : 2; 
+        uint8_t      s2vsa : 1,
+                     s2vsb : 1,
+                   stealth : 1,
+                  fsactive : 1;
+        uint8_t  CS_ACTUAL : 5;
+        uint8_t            : 3;
+        bool    stallguard : 1,
+                        ot : 1,
+                      otpw : 1,
+                      s2ga : 1,
+                      s2gb : 1,
+                       ola : 1,
+                       olb : 1,
+                      stst : 1;
       };
     };
   };
@@ -82,9 +112,9 @@ namespace TMC2240_n {
     union {
       uint32_t sr;
       struct {
-        uint16_t ihold : 5;
-        uint8_t        : 3;
-        uint8_t  irun  : 5,
+        uint8_t  ihold : 5,
+                       : 3,
+                 irun  : 5,
                        : 3,
             iholddelay : 4,
                        : 4,
@@ -104,27 +134,52 @@ namespace TMC2240_n {
       struct {
         uint8_t toff : 4,
                 hstrt : 3,
-                hend : 4,
-                    : 4,
-                tbl : 2,
-                fd3 : 1,
+                hend : 4;
+        bool    fd3 : 1,
                 disfdcc : 1,
-                chm : 1,
-                TBL : 2,
-                    : 1,
+                chm : 1;
+        uint8_t TBL : 2;
+        bool           : 1,
                 vhighfs : 1,
-                vhighchm : 1,
-                TPFD : 4, 
-                MRES : 4, 
-                intpol : 1, 
+                vhighchm : 1;
+        uint8_t tpfd : 4, 
+                mres : 4;
+        bool    intpol : 1, 
                 dedge : 1,
                 diss2g : 1,
                 diss2vs : 1;
       };
     };
   };
+};
 
 
+
+namespace TMC2240_n {
+  struct COOLCONF_t {
+    constexpr static uint8_t address = 0x6D;
+    union {
+      uint16_t sr;
+      struct {
+        uint8_t    semin  : 4;
+        bool              : 1;
+        uint8_t    seup   : 2;
+        bool              : 1;
+        uint8_t    semax  : 4;
+        bool              : 1;
+        uint8_t    sedn   : 2;
+        bool       seimin : 1;
+        uint8_t    sgt    : 7;
+        bool              : 1;
+        uint8_t           : 7;
+      };
+    };
+  };
+};
+
+
+
+namespace TMC2240_n {
   struct PWMCONF_t {
     constexpr static uint8_t address = 0x70;
     union {
@@ -135,47 +190,24 @@ namespace TMC2240_n {
                 pwm_freq : 2;
         bool    pwm_autoscale : 1,
                 pwm_autograd : 1;
-        uint8_t freewheel : 2,
-                pwm_meas_sd_enable : 1,
-                pwm_dis_reg_stst   : 1,
-                pwm_reg : 4,
+        uint8_t freewheel : 2;
+        bool    pwm_meas_sd_enable : 1,
+                pwm_dis_reg_stst   : 1;
+        uint8_t pwm_reg : 4,
                 pwm_lim : 4;
       };
     };
   };
 
-  struct DRV_STATUS_t {
-    constexpr static uint8_t address = 0x6F;
-    union {
-      uint32_t sr;
-      struct {
-        uint32_t SG_RESULT : 10;
-        uint8_t            : 2; 
-        uint8_t      s2vsa : 1,
-                     s2vsb : 1,
-                   stealth : 1,
-                  fsactive : 1;
-        uint16_t CS_ACTUAL : 5;
-        uint8_t            : 3;
-        bool    stallguard : 1,
-                        ot : 1,
-                      otpw : 1,
-                      s2ga : 1,
-                      s2gb : 1,
-                       ola : 1,
-                       olb : 1,
-                      stst : 1;
-      };
-    };
-  };
+
 
   struct PWM_SCALE_t {
     constexpr static uint8_t address = 0x71;
     union {
       uint32_t sr;
       struct {
-        uint16_t pwm_scale_sum : 10,
-                : 6;
+        uint16_t pwm_scale_sum : 10;
+        uint8_t        : 6;
         int16_t  pwm_scale_auto : 9;
       };
     };

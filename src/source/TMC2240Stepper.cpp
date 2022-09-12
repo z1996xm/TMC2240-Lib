@@ -13,7 +13,6 @@ TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr) :
 	}
 
 
-
 TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2) :
 	TMC2240Stepper(SerialPort, RS)
 	{
@@ -74,7 +73,7 @@ void TMC2240Stepper::push() {
 }
 
 
-bool TMC2240Stepper::isEnabled() { return !enn() && toff(); }
+bool TMC2240Stepper::isEnabled() { return !drv_enn() && toff(); }
 
 uint8_t TMC2240Stepper::calcCRC(uint8_t datagram[], uint8_t len) {
 	uint8_t crc = 0;
@@ -92,7 +91,6 @@ uint8_t TMC2240Stepper::calcCRC(uint8_t datagram[], uint8_t len) {
 	}
 	return crc;
 }
-
 
 
 __attribute__((weak))
@@ -339,15 +337,6 @@ uint16_t TMC2240Stepper::SLAVECONF() {
 void TMC2240Stepper::senddelay(uint8_t B) 	{ SLAVECONF_register.senddelay = B; write(SLAVECONF_register.address, SLAVECONF_register.sr); }
 uint8_t TMC2240Stepper::senddelay() 		{ return SLAVECONF_register.senddelay; }
 
-
-void TMC2240Stepper::OTP_PROG(uint16_t input) {
-	write(OTP_PROG_t::address, input);
-}
-
-
-uint32_t TMC2240Stepper::OTP_READ() {
-	return read(OTP_READ_t::address);
-}
 
 
 uint32_t TMC2240Stepper::IOIN() {

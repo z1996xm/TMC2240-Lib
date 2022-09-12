@@ -106,3 +106,46 @@ uint8_t TMC2660Stepper::hdec() 	{ GET_REG_2660(hdec);	}
 bool TMC2660Stepper::rndtf() { GET_REG_2660(rndtf);	}
 bool TMC2660Stepper::chm() 	{ GET_REG_2660(chm);	}
 uint8_t TMC2660Stepper::tbl() { GET_REG_2660(tbl);	}
+
+
+
+void TMC2240Stepper::CHOPCONF(uint32_t input) {
+	CHOPCONF_register.sr = input;
+	write(CHOPCONF_register.address, CHOPCONF_register.sr);
+}
+uint32_t TMC2240Stepper::CHOPCONF() {
+	return read(CHOPCONF_register.address);
+}
+void TMC2240Stepper::toff		( uint8_t  B )	{ SET_REG(toff); 	}
+void TMC2240Stepper::hstrt		( uint8_t  B )	{ SET_REG(hstrt); 	}
+void TMC2240Stepper::hend		( uint8_t  B )	{ SET_REG(hend); 	}
+void TMC2240Stepper::fd3		( bool     B )	{ SET_REG(fd3); 	}
+void TMC2240Stepper::disfdcc	( bool     B )	{ SET_REG(disfdcc); }
+void TMC2240Stepper::chm		( bool     B )	{ SET_REG(chm); 	}
+void TMC2240Stepper::TBL		( uint8_t  B )	{ SET_REG(TBL); 	}
+void TMC2240Stepper::vhighfs	( bool     B )	{ SET_REG(vhighfs); }
+void TMC2240Stepper::vhighchm	( bool     B )	{ SET_REG(vhighchm);}
+void TMC2240Stepper::tpfd		( uint8_t  B )	{ SET_REG(tpfd);	}
+void TMC2240Stepper::mres		( uint8_t  B )	{ SET_REG(mres); 	}
+void TMC2240Stepper::intpol		( bool     B )	{ SET_REG(intpol); 	}
+void TMC2240Stepper::dedge		( bool     B )	{ SET_REG(dedge); 	}
+void TMC2240Stepper::diss2g		( bool     B )	{ SET_REG(diss2g); 	}
+void TMC2240Stepper::diss2vs	( bool     B )	{ SET_REG(diss2vs); }
+
+
+
+uint8_t TMC2240Stepper::toff()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.toff; 	}
+uint8_t TMC2240Stepper::hstrt()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.hstrt; 	}
+uint8_t TMC2240Stepper::hend()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.hend; 	}
+bool 	TMC2240Stepper::fd3()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.fd3;	 	}
+bool 	TMC2240Stepper::disfdcc()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.disfdcc; 	}
+bool 	TMC2240Stepper::chm()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.chm; 		}
+uint8_t TMC2240Stepper::TBL()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.TBL; 		}
+bool 	TMC2240Stepper::vhighfs()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.vhighfs; 	}
+bool 	TMC2240Stepper::vhighchm()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.vhighchm; }
+uint8_t TMC2240Stepper::tpfd()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.tpfd; 	}
+uint8_t TMC2240Stepper::mres()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.mres; 	}
+bool 	TMC2240Stepper::intpol()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.intpol; 	}
+bool 	TMC2240Stepper::dedge()		{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.dedge; 	}
+bool 	TMC2240Stepper::diss2g()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.diss2g; 	}
+bool 	TMC2240Stepper::diss2vs()	{ TMC2240_n::CHOPCONF_t r{0}; r.sr = CHOPCONF(); return r.diss2vs; 	}
