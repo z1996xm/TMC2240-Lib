@@ -1485,9 +1485,6 @@ class TMC2240Stepper : public TMCStepper {
 
 		struct IFCNT_t 		{ constexpr static uint8_t address = 0x02; };
 
-		SSwitch *sswitch = nullptr;
-		uint32_t read(uint8_t);
-		uint8_t calcCRC(uint8_t datagram[], uint8_t len);
 		TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr);
 		#if SW_CAPABLE_PLATFORM
 			TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS, uint8_t addr);
@@ -1498,6 +1495,9 @@ class TMC2240Stepper : public TMCStepper {
 			SoftwareSerial * SWSerial = nullptr;
 			const uint16_t RXTX_pin = 0; // Half duplex
 		#endif
+
+		SSwitch *sswitch = nullptr;
+
 		int available();
 		void preWriteCommunication();
 		void preReadCommunication();
