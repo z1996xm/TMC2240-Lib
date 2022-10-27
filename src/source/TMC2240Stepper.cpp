@@ -4,8 +4,7 @@
 
 
 
-TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr) :
-	TMCStepper(RS),
+TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, uint8_t addr) :
 	slave_address(addr)
 	{
 		HWSerial = SerialPort;
@@ -13,8 +12,7 @@ TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr) :
 	}
 
 
-TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2) :
-	TMC2240Stepper(SerialPort, RS)
+TMC2240Stepper::TMC2240Stepper(Stream * SerialPort,uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2) : TMC2240Stepper(SerialPort)
 	{
 		SSwitch *SMulObj = new SSwitch(mul_pin1, mul_pin2, addr);
 		sswitch = SMulObj;
@@ -23,8 +21,7 @@ TMC2240Stepper::TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr, uint
 
 
 #if SW_CAPABLE_PLATFORM
-	TMC2240Stepper::TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS, uint8_t addr) :
-		TMCStepper(RS),
+	TMC2240Stepper::TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, uint8_t addr) :
 		RXTX_pin(SW_RX_pin == SW_TX_pin ? SW_RX_pin : 0),
 		slave_address(addr)
 		{
@@ -334,8 +331,8 @@ uint16_t TMC2240Stepper::SLAVECONF() {
 	return SLAVECONF_register.sr;
 }
 
-void TMC2240Stepper::senddelay(uint8_t B) 	{ SLAVECONF_register.senddelay = B; write(SLAVECONF_register.address, SLAVECONF_register.sr); }
-uint8_t TMC2240Stepper::senddelay() 		{ return SLAVECONF_register.senddelay; }
+void TMC2240Stepper::senddelay(uint8_t B) 	{ SLAVECONF_register.SENDDELAY = B; write(SLAVECONF_register.address, SLAVECONF_register.sr); }
+uint8_t TMC2240Stepper::senddelay() 		{ return SLAVECONF_register.SENDDELAY; }
 
 
 
@@ -397,3 +394,113 @@ uint8_t TMC2240Stepper::pwm_ofs_auto()  { PWM_AUTO_t r{0}; r.sr = PWM_AUTO(); re
 uint8_t TMC2240Stepper::pwm_grad_auto() { PWM_AUTO_t r{0}; r.sr = PWM_AUTO(); return r.pwm_grad_auto; }
 
 
+//******zhou******//
+
+  /**
+   * 0:1A  1:2A  2:3A  3:3A
+   */
+  #define TMC2240_CURRENT_RANGE   3    
+
+  /**
+   * ('rref', 12000, minval=12000, maxval=60000)
+  */     
+  #define TMC2240_Rref            12000
+
+float TMC2240Stepper::calc_IFS_current_RMS(int8_t range, uint32_t Rref)
+{
+	uint32_t Kifs_values[]={11750,24000,36000,36000};
+	float IFS_current_RMS=0;
+
+	IFS_current_RMS=((float)(Kifs_values[range]) /Rref) /sqrt(2);
+
+	return IFS_current_RMS;
+}
+
+uint32_t TMC2240Stepper::set_globalscaler(float current, float IFS_current_RMS)
+{
+	uint32_t globalscaler=0;
+
+	globalscaler=(int)(((current * 256) / IFS_current_RMS) + 0.5);
+
+	if(globalscaler<32)globalscaler=32;
+	if(globalscaler>=256)globalscaler=0;
+
+	return globalscaler;
+}
+
+
+void TMC2240Stepper::rms_current(uint16_t mA)
+{
+	uint32_t globalscaler,IFS_current_RMS,CS=0;
+
+	IFS_current_RMS	=calc_IFS_current_RMS(TMC2240_CURRENT_RANGE,TMC2240_Rref);
+	globalscaler	=set_globalscaler(mA,IFS_current_RMS);
+
+	CS=(int)((mA * 256 * 32) / (globalscaler * IFS_current_RMS)-1+0.5);
+
+	if(CS>=31)	CS=31;
+	if(CS<=0)	CS=0;
+
+ 	irun(CS);
+  	ihold(CS*holdMultiplier);
+}
+
+void TMC2240Stepper::rms_current(uint16_t mA, float mult) {
+  holdMultiplier = mult;
+  rms_current(mA);
+}
+
+void TMC2240Stepper::microsteps(uint16_t ms) {
+  switch(ms) {
+    case 256: mres(0); break;
+    case 128: mres(1); break;
+    case  64: mres(2); break;
+    case  32: mres(3); break;
+    case  16: mres(4); break;
+    case   8: mres(5); break;
+    case   4: mres(6); break;
+    case   2: mres(7); break;
+    case   0: mres(8); break;
+    default: break;
+  }
+}
+
+uint16_t TMC2240Stepper::microsteps() {
+  switch(mres()) {
+    case 0: return 256;
+    case 1: return 128;
+    case 2: return  64;
+    case 3: return  32;
+    case 4: return  16;
+    case 5: return   8;
+    case 6: return   4;
+    case 7: return   2;
+    case 8: return   0;
+  }
+  return 0;
+}
+
+
+uint8_t TMC2240Stepper::test_connection() {
+  uint32_t drv_status = DRV_STATUS();
+  switch (drv_status) {
+      case 0xFFFFFFFF: return 1;
+      case 0: return 2;
+      default: return 0;
+  }
+}
+
+// W: TPOWERDOWN
+uint8_t TMC2240Stepper::TPOWERDOWN() { return TPOWERDOWN_register.sr; }
+void TMC2240Stepper::TPOWERDOWN(uint8_t input) {
+  TPOWERDOWN_register.sr = input;
+  write(TPOWERDOWN_register.address, TPOWERDOWN_register.sr);
+}
+
+
+void TMC2240Stepper::hysteresis_end(int8_t value) { hend(value+3); }
+int8_t TMC2240Stepper::hysteresis_end() { return hend()-3; };
+
+void TMC2240Stepper::hysteresis_start(uint8_t value) { hstrt(value-1); }
+uint8_t TMC2240Stepper::hysteresis_start() { return hstrt()+1; }
+//******zhou******//

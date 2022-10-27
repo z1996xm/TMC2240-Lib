@@ -1266,23 +1266,19 @@ class TMC2660Stepper {
 };
 
 
-
-class TMC2240Stepper : public TMCStepper {
+class TMC2240Stepper  {
+//class TMC2240Stepper : public TMCStepper {
 	public:
-	    TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2);
-		TMC2240Stepper(Stream * SerialPort, float RS) :
-			TMC2240Stepper(SerialPort, RS, TMC2240_SLAVE_ADDR)
-			{}
+		TMC2240Stepper(Stream * SerialPort):TMC2240Stepper(SerialPort, TMC2240_SLAVE_ADDR){};
+	    TMC2240Stepper(Stream * SerialPort, uint8_t addr, uint16_t mul_pin1, uint16_t mul_pin2);
 
 		#if SW_CAPABLE_PLATFORM
-			TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS) :
-				TMC2240Stepper(SW_RX_pin, SW_TX_pin, RS, TMC2240_SLAVE_ADDR)
-				{}
+		TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin) : TMC2240Stepper(SW_RX_pin, SW_TX_pin,TMC2240_SLAVE_ADDR){};
 
-			__attribute__((deprecated("Boolean argument has been deprecated and does nothing")))
-			TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS, bool) :
-				TMC2240Stepper(SW_RX_pin, SW_TX_pin, RS, TMC2240_SLAVE_ADDR)
-				{};
+			// __attribute__((deprecated("Boolean argument has been deprecated and does nothing")))
+			// TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin,  uint8_t) :
+			// 	TMC2240Stepper(SW_RX_pin, SW_TX_pin,  TMC2240_SLAVE_ADDR)
+			// 	{};
 		#else
 			TMC2240Stepper(uint16_t, uint16_t, float) = delete; // Your platform does not currently support Software Serial
 		#endif
@@ -1471,23 +1467,64 @@ class TMC2240Stepper : public TMCStepper {
 		uint8_t pwm_ofs_auto();
 		uint8_t pwm_grad_auto();
 
+		uint32_t DRV_STATUS();
+		uint32_t SG_RESULT();
+		bool s2vsa();
+		bool s2vsb();
+		bool stealth();
+		bool fsactive();
+		uint16_t CS_ACTUAL();
+		bool stallguard();
+		bool ot();
+		bool otpw();
+		bool s2ga();
+		bool s2gb();
+		bool ola();
+		bool olb();
+		bool stst();
+
 		uint16_t bytesWritten = 0;
-		float Rsense = 0.11;
 		bool CRCerror = false;
 
+		void microsteps(uint16_t ms);
+		uint16_t microsteps();
+
+		uint8_t test_connection();
+		uint16_t MSCNT();
+		void rms_current(uint16_t mA);
+		void rms_current(uint16_t mA, float mult);
+
+		void hysteresis_end(int8_t value);
+		int8_t hysteresis_end();
+		void hysteresis_start(uint8_t value);
+		uint8_t hysteresis_start();
+
+		uint8_t TPOWERDOWN();
+		void TPOWERDOWN(uint8_t input);
+		
+		static constexpr uint8_t TMC_READ = 0x00,
+		
+		TMC_WRITE = 0x80;
+				static constexpr uint8_t TMC2240_SLAVE_ADDR = 0x00;
 	protected:
 		INIT2240_REGISTER(GCONF)			{{.sr=0}};
 		INIT2240_REGISTER(DRV_CONF)			{{.sr=0}};
-		INIT_REGISTER(SLAVECONF)			{{.sr=0}};
+		INIT2240_REGISTER(SLAVECONF)		{{.sr=0}};
 		INIT2240_REGISTER(IHOLD_IRUN)		{{.sr=0}};	// 32b
 		INIT2240_REGISTER(CHOPCONF)			{{.sr=0}};
 		INIT2240_REGISTER(PWMCONF)			{{.sr=0}};
+		INIT2240_REGISTER(TPOWERDOWN)		{{.sr=0}};		// 8b
 
 		struct IFCNT_t 		{ constexpr static uint8_t address = 0x02; };
+		struct TSTEP_t 		{ constexpr static uint8_t address = 0x12; };
+		struct MSCNT_t 		{ constexpr static uint8_t address = 0x6A; };
 
-		TMC2240Stepper(Stream * SerialPort, float RS, uint8_t addr);
+		float 		calc_IFS_current_RMS(int8_t range, uint32_t Rref);
+		uint32_t	set_globalscaler(float current, float IFS_current_RMS);
+
+		TMC2240Stepper(Stream * SerialPort, uint8_t addr);
 		#if SW_CAPABLE_PLATFORM
-			TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, float RS, uint8_t addr);
+			TMC2240Stepper(uint16_t SW_RX_pin, uint16_t SW_TX_pin, uint8_t addr);
 		#endif
 
 		Stream * HWSerial = nullptr;
@@ -1495,6 +1532,7 @@ class TMC2240Stepper : public TMCStepper {
 			SoftwareSerial * SWSerial = nullptr;
 			const uint16_t RXTX_pin = 0; // Half duplex
 		#endif
+		
 
 		SSwitch *sswitch = nullptr;
 
@@ -1509,11 +1547,11 @@ class TMC2240Stepper : public TMCStepper {
 		uint32_t read(uint8_t);
 		const uint8_t slave_address;
 		uint8_t calcCRC(uint8_t datagram[], uint8_t len);
-		static constexpr uint8_t  TMC2240_SYNC = 0x05,
-															TMC2240_SLAVE_ADDR = 0x00;
+		static constexpr uint8_t TMC2240_SYNC = 0x05;
 		static constexpr uint8_t replyDelay = 2;
 		static constexpr uint8_t abort_window = 5;
 		static constexpr uint8_t max_retries = 2;
 
 		uint64_t _sendDatagram(uint8_t [], const uint8_t, uint16_t);
+		float holdMultiplier = 0.5;
 };	

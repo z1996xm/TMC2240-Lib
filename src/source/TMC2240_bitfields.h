@@ -29,6 +29,20 @@ namespace TMC2240_n {
   };
 }
 
+
+namespace TMC2240_n {
+  struct SLAVECONF_t {
+    constexpr static uint8_t address = 0x03;
+    union {
+      uint16_t sr : 12;
+      struct {
+        uint16_t  SLAVEADDR : 8;
+        uint8_t   SENDDELAY : 4 ;
+        };
+    };
+  };
+}
+
 namespace TMC2240_n {
   struct IOIN_t {
     constexpr static uint8_t address = 0x04;
@@ -60,6 +74,8 @@ namespace TMC2240_n {
 }
 
 
+
+
 namespace TMC2240_n {
   struct DRV_CONF_t {
     constexpr static uint8_t address = 0x0A;
@@ -76,6 +92,17 @@ namespace TMC2240_n {
 };
 
 
+namespace TMC2240_n {
+  struct TPOWERDOWN_t {
+    constexpr static uint8_t address = 0x11;
+    union {
+      uint32_t sr;
+      struct {
+          uint16_t TPOWERDOWN : 8;
+      };
+    };
+  };
+};
 
 namespace TMC2240_n {
   struct DRV_STATUS_t {
@@ -89,7 +116,7 @@ namespace TMC2240_n {
                      s2vsb : 1,
                    stealth : 1,
                   fsactive : 1;
-        uint8_t  CS_ACTUAL : 5;
+        uint16_t  CS_ACTUAL : 5;
         uint8_t            : 3;
         bool    stallguard : 1,
                         ot : 1,
