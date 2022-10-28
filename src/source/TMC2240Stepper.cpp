@@ -55,7 +55,7 @@ void TMC2240Stepper::begin() {
 
 
 void TMC2240Stepper::defaults() {
-	// GCONF_register..sr = 0x0004;
+	// GCONF_register.sr = 0x0000;
 	// CHOPCONF_register.sr = 0x10000053;
 	// PWMCONF_register.sr = 0xC10D0024;
 }
@@ -406,12 +406,18 @@ uint8_t TMC2240Stepper::pwm_grad_auto() { PWM_AUTO_t r{0}; r.sr = PWM_AUTO(); re
   */     
   #define TMC2240_Rref            12000
 
+
+uint16_t TMC2240Stepper::cs2rms(uint8_t CS) {
+  return 2;
+}
+
+
 float TMC2240Stepper::calc_IFS_current_RMS(int8_t range, uint32_t Rref)
 {
 	uint32_t Kifs_values[]={11750,24000,36000,36000};
 	float IFS_current_RMS=0;
 
-	IFS_current_RMS=((float)(Kifs_values[range]) /Rref) /sqrt(2);
+	IFS_current_RMS=(float)(((float)(Kifs_values[range]) /Rref) /sqrt(2));
 
 	return IFS_current_RMS;
 }
@@ -434,9 +440,9 @@ void TMC2240Stepper::rms_current(uint16_t mA)
 	uint32_t globalscaler,IFS_current_RMS,CS=0;
 
 	IFS_current_RMS	=calc_IFS_current_RMS(TMC2240_CURRENT_RANGE,TMC2240_Rref);
-	globalscaler	=set_globalscaler(mA,IFS_current_RMS);
+	globalscaler	=set_globalscaler(mA/1000,IFS_current_RMS);
 
-	CS=(int)((mA * 256 * 32) / (globalscaler * IFS_current_RMS)-1+0.5);
+	CS=(int)((((mA/1000) * 256 * 32) / (globalscaler * IFS_current_RMS))-1+0.5);
 
 	if(CS>=31)	CS=31;
 	if(CS<=0)	CS=0;
@@ -448,6 +454,11 @@ void TMC2240Stepper::rms_current(uint16_t mA)
 void TMC2240Stepper::rms_current(uint16_t mA, float mult) {
   holdMultiplier = mult;
   rms_current(mA);
+}
+
+
+uint16_t TMC2240Stepper::rms_current() {
+  return cs2rms(irun());
 }
 
 void TMC2240Stepper::microsteps(uint16_t ms) {
@@ -479,6 +490,18 @@ uint16_t TMC2240Stepper::microsteps() {
   }
   return 0;
 }
+
+
+
+
+// R+C: GSTAT
+uint8_t TMC2240Stepper::GSTAT()  			{ return read(TMC2240_n::GSTAT_t::address); }
+void  TMC2240Stepper::GSTAT(uint8_t)		{ write(TMC2240_n::GSTAT_t::address, 0b111); }
+bool  TMC2240Stepper::reset()   			{ TMC2240_n::GSTAT_t r; r.sr = GSTAT(); return r.reset; }
+bool  TMC2240Stepper::drv_err()  			{ TMC2240_n::GSTAT_t r; r.sr = GSTAT(); return r.drv_err; }
+bool  TMC2240Stepper::uv_cp()    			{ TMC2240_n::GSTAT_t r; r.sr = GSTAT(); return r.uv_cp; }
+bool  TMC2240Stepper::register_reset()  	{ TMC2240_n::GSTAT_t r; r.sr = GSTAT(); return r.register_reset; }
+bool  TMC2240Stepper::vm_uvlo()    			{ TMC2240_n::GSTAT_t r; r.sr = GSTAT(); return r.vm_uvlo; }
 
 
 uint8_t TMC2240Stepper::test_connection() {

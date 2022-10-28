@@ -1328,8 +1328,16 @@ class TMC2240Stepper  {
 		bool stop_enable();
 		bool direct_mode();
 
-
+		// R+WC: GSTAT
+		void 	GSTAT(							uint8_t input);
+		uint8_t GSTAT();
+		bool 	reset();
+		bool 	drv_err();
+		bool 	uv_cp();
+		bool	register_reset();
+		bool    vm_uvlo();
 		// R: IFCNT
+
 		uint8_t IFCNT();
 
 		// W: SLAVECONF
@@ -1491,8 +1499,11 @@ class TMC2240Stepper  {
 
 		uint8_t test_connection();
 		uint16_t MSCNT();
+		
+		uint16_t cs2rms(uint8_t CS);
 		void rms_current(uint16_t mA);
 		void rms_current(uint16_t mA, float mult);
+		uint16_t rms_current();
 
 		void hysteresis_end(int8_t value);
 		int8_t hysteresis_end();

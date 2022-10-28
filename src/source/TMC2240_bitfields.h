@@ -29,6 +29,22 @@ namespace TMC2240_n {
   };
 }
 
+namespace TMC2240_n {
+  struct GSTAT_t {
+      constexpr static uint8_t address = 0x01;
+      union {
+        uint8_t sr : 8;
+        struct {
+          bool    reset       : 1,
+                  drv_err     : 1,
+                  uv_cp       : 1,
+                  register_reset : 1,
+                  vm_uvlo     : 1;
+       };
+    };
+  };
+}      
+
 
 namespace TMC2240_n {
   struct SLAVECONF_t {

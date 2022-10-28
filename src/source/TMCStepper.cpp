@@ -118,6 +118,8 @@ void  TMCStepper::GSTAT(uint8_t){ write(GSTAT_t::address, 0b111); }
 bool  TMCStepper::reset()    { GSTAT_t r; r.sr = GSTAT(); return r.reset; }
 bool  TMCStepper::drv_err()  { GSTAT_t r; r.sr = GSTAT(); return r.drv_err; }
 bool  TMCStepper::uv_cp()    { GSTAT_t r; r.sr = GSTAT(); return r.uv_cp; }
+
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // W: TPOWERDOWN
 uint8_t TMCStepper::TPOWERDOWN() { return TPOWERDOWN_register.sr; }
